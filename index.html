@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171717">
+  <title>JP Burger | Punto de venta</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-icon">🍔</span><div><h1>JP BURGER</h1><small>Punto de venta</small></div></div>
+  <div class="top-actions"><span class="open-pill">● Sistema listo</span><button id="clearCartTop" class="btn btn-outline">Vaciar pedido</button></div>
+</header>
+<main class="layout">
+  <section class="catalog">
+    <div class="welcome"><div><p class="eyebrow">SISTEMA DE PEDIDOS</p><h2>¿Qué vamos a preparar hoy?</h2><p>Selecciona productos para agregarlos al pedido.</p></div><div class="burger-art">🍟</div></div>
+    <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Buscar producto..."></label>
+    <nav id="categories" class="categories" aria-label="Categorías"></nav>
+    <div id="products" class="products"></div>
+  </section>
+  <aside class="order-panel">
+    <div class="panel-heading"><div><p class="eyebrow">VENTA ACTUAL</p><h2>Tu pedido</h2></div><span id="itemCount" class="count">0</span></div>
+    <div class="customer-fields">
+      <label>Nombre del cliente<input id="customer" placeholder="Nombre"></label>
+      <label>Teléfono<input id="customerPhone" inputmode="tel" placeholder="Teléfono (opcional)"></label>
+      <label>Tipo de pedido<select id="orderType"><option>Domicilio</option><option>Recoger en el local</option><option>Para consumir en el local</option></select></label>
+      <label id="addressWrap">Dirección de entrega<input id="address" placeholder="Dirección y barrio"></label>
+    </div>
+    <div id="cart" class="cart empty"><div class="empty-icon">🛍️</div><strong>Tu pedido está vacío</strong><p>Agrega productos desde el menú.</p></div>
+    <label class="notes-label">Observaciones<textarea id="notes" rows="2" placeholder="Ej. Sin cebolla, llamar al llegar..."></textarea></label>
+    <div class="total-line"><span>Total</span><strong id="total">$0</strong></div>
+    <button id="sendWhatsApp" class="btn btn-whatsapp" disabled>☏ &nbsp; Enviar pedido por WhatsApp</button>
+    <button id="clearCart" class="btn btn-light">Limpiar pedido</button>
+    <p class="hint">WhatsApp abrirá el pedido listo para enviar. Confirma el envío desde WhatsApp.</p>
+  </aside>
+</main>
+<footer>JP BURGER · Calidad y sabor que te hacen volver</footer>
+<script src="app.js"></script>
+</body>
+</html>
