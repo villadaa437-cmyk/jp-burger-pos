@@ -26,6 +26,14 @@
       <label>Teléfono<input id="customerPhone" inputmode="tel" placeholder="Teléfono (opcional)"></label>
       <label>Tipo de pedido<select id="orderType"><option>Domicilio</option><option>Recoger en el local</option><option>Para consumir en el local</option></select></label>
       <label id="addressWrap">Dirección de entrega<input id="address" placeholder="Dirección y barrio"></label>
+      <label>Método de pago
+        <select id="paymentMethod">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Nequi">Nequi</option>
+          <option value="Llave Bre-B">Llave Bre-B</option>
+        </select>
+      </label>
+      <p class="hint payment-hint">Selecciona cómo vas a pagar. Para transferencias por Nequi o Bre-B, el negocio confirmará los datos por WhatsApp.</p>
     </div>
     <div id="cart" class="cart empty"><div class="empty-icon">🛍️</div><strong>Tu pedido está vacío</strong><p>Agrega productos desde el menú.</p></div>
     <label class="notes-label">Observaciones<textarea id="notes" rows="2" placeholder="Ej. Sin cebolla, llamar al llegar..."></textarea></label>

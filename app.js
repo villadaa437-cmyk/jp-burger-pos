@@ -87,7 +87,8 @@ function sendWhatsApp(){
  const entries=Object.values(cart);if(!entries.length)return;
  const total=entries.reduce((s,x)=>s+x.qty*x.product.price,0);
  const type=$("orderType").value, customer=$("customer").value.trim()||"No indicado";
- const lines=["🍔 *NUEVO PEDIDO - JP BURGER*","",`👤 Cliente: ${customer}`,`📞 Teléfono: ${$("customerPhone").value.trim()||"No indicado"}`,`🛵 Tipo: ${type}`];
+ const paymentMethod=$("paymentMethod").value;
+ const lines=["🍔 *NUEVO PEDIDO - JP BURGER*","",`👤 Cliente: ${customer}`,`📞 Teléfono: ${$("customerPhone").value.trim()||"No indicado"}`,`🛵 Tipo: ${type}`,`💳 Método de pago: ${paymentMethod}`];
  if(type==="Domicilio")lines.push(`📍 Dirección: ${$("address").value.trim()||"Por confirmar"}`);
  lines.push("","*PRODUCTOS*");
  entries.forEach(({product:p,qty})=>lines.push(`• ${qty} x ${p.name} — ${money(p.price*qty)}`));
