@@ -1,14 +1,63 @@
 
 // ==========================================
-// JP BURGER POS
-// Catálogo, carrito y pedidos por WhatsApp
+// JP BURGER POS — CATÁLOGO PREMIUM
 // ==========================================
 
-// WhatsApp del negocio
 const WHATSAPP_NUMBER = "573103114145";
 
+// Fotografías ilustrativas por categoría
+const productImages = {
+  "Hamburguesas": [
+    "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Ricuras": [
+    "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1534939561126-855b8675edd7?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Perros calientes": [
+    "https://images.unsplash.com/photo-1612392062631-94dd858cba88?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1599599810694-b5b37304c041?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Salchipapas": [
+    "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Dorilocos": [
+    "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Flautas": [
+    "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Lasañas": [
+    "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1619895092538-128341789043?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Burritos": [
+    "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Adicionales": [
+    "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=900&q=85"
+  ],
+  "Bebidas": [
+    "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1513558161293-cdcac4c2c8c5?auto=format&fit=crop&w=900&q=85"
+  ]
+};
+
+function imageFor(category, index) {
+  const images = productImages[category] || productImages["Ricuras"];
+  return images[index % images.length];
+}
+
 // ==========================================
-// CATALOGO COMPLETO DE PRODUCTOS
+// PRODUCTOS
 // ==========================================
 
 const products = [
@@ -90,11 +139,12 @@ const products = [
   name:p[1],
   price:p[2],
   description:p[3],
-  emoji:p[4]
+  emoji:p[4],
+  image:imageFor(p[0],i)
 }));
 
 // ==========================================
-// CONFIGURACION GENERAL
+// CONFIGURACIÓN
 // ==========================================
 
 const money = n => new Intl.NumberFormat("es-CO", {
@@ -114,29 +164,24 @@ const categories = [
 const $ = id => document.getElementById(id);
 
 // ==========================================
-// MOSTRAR CATEGORIAS
+// CATEGORÍAS
 // ==========================================
 
 function renderCategories() {
-
   $("categories").innerHTML = categories.map(c => `
     <button class="category ${c===activeCategory?"active":""}"
       data-category="${c}">
       ${c}
     </button>
   `).join("");
-
 }
 
 // ==========================================
-// MOSTRAR PRODUCTOS
+// PRODUCTOS
 // ==========================================
 
 function renderProducts() {
-
-  const q = $("search").value
-    .trim()
-    .toLocaleLowerCase("es");
+  const q = $("search").value.trim().toLocaleLowerCase("es");
 
   const list = products.filter(p =>
     (activeCategory==="Todos" || p.category===activeCategory) &&
@@ -148,80 +193,65 @@ function renderProducts() {
   $("products").innerHTML = list.length
     ? list.map(p => `
       <article class="product">
-
-        <div class="product-top">
-          <span class="product-emoji">${p.emoji}</span>
-          <span class="eyebrow">${p.category}</span>
+        <div class="product-photo">
+          <img
+            src="${p.image}"
+            alt="${p.name}"
+            loading="lazy"
+            onerror="this.style.display='none'; this.parentElement.classList.add('image-fallback')"
+          >
+          <span class="photo-emoji">${p.emoji}</span>
+          <span class="product-category">${p.category}</span>
         </div>
 
-        <h3>${p.name}</h3>
+        <div class="product-content">
+          <h3>${p.name}</h3>
+          <p>${p.description}</p>
 
-        <p>${p.description}</p>
-
-        <div class="product-bottom">
-          <span class="price">${money(p.price)}</span>
-          <button class="add" data-add="${p.id}">
-            + Agregar
-          </button>
+          <div class="product-bottom">
+            <span class="price">${money(p.price)}</span>
+            <button class="add" data-add="${p.id}">
+              + Agregar
+            </button>
+          </div>
         </div>
-
       </article>
     `).join("")
     : `<div class="no-results">
         No encontramos productos con esa búsqueda.
       </div>`;
-
 }
 
 // ==========================================
-// MOSTRAR CARRITO
+// CARRITO
 // ==========================================
 
 function renderCart() {
-
   const entries = Object.values(cart);
 
-  const qty = entries.reduce(
-    (s,x)=>s+x.qty,0
-  );
-
-  const total = entries.reduce(
-    (s,x)=>s+x.qty*x.product.price,0
-  );
+  const qty = entries.reduce((s,x)=>s+x.qty,0);
+  const total = entries.reduce((s,x)=>s+x.qty*x.product.price,0);
 
   $("itemCount").textContent = qty;
-
   $("total").textContent = money(total);
-
   $("sendWhatsApp").disabled = !entries.length;
 
-  $("cart").classList.toggle(
-    "empty",
-    !entries.length
-  );
+  $("cart").classList.toggle("empty",!entries.length);
 
   $("cart").innerHTML = entries.length
     ? entries.map(({product:p,qty}) => `
       <div class="cart-row">
-
         <div>
           <div class="cart-name">${p.name}</div>
-
           <div class="cart-price">
             ${money(p.price)} · ${money(p.price*qty)}
           </div>
         </div>
 
         <div class="qty">
-
-          <button data-dec="${p.id}"
-            aria-label="Quitar uno">−</button>
-
+          <button data-dec="${p.id}" aria-label="Quitar uno">−</button>
           <span>${qty}</span>
-
-          <button data-inc="${p.id}"
-            aria-label="Agregar uno">+</button>
-
+          <button data-inc="${p.id}" aria-label="Agregar uno">+</button>
         </div>
       </div>
     `).join("")
@@ -230,70 +260,39 @@ function renderCart() {
       <strong>Tu pedido está vacío</strong>
       <p>Agrega productos desde el menú.</p>
     `;
-
 }
 
-// ==========================================
-// AGREGAR PRODUCTOS
-// ==========================================
-
 function add(id) {
+  const p = products.find(x => x.id === Number(id));
+  if (!p) return;
 
-  const p = products.find(
-    x => x.id === Number(id)
-  );
-
-  if (!cart[id]) {
-    cart[id] = {
-      product:p,
-      qty:0
-    };
-  }
-
+  if (!cart[id]) cart[id] = {product:p,qty:0};
   cart[id].qty++;
 
   renderCart();
-
 }
 
-// ==========================================
-// CAMBIAR CANTIDADES
-// ==========================================
-
 function changeQty(id,d) {
-
   if (!cart[id]) return;
 
   cart[id].qty += d;
 
-  if (cart[id].qty<=0) {
-    delete cart[id];
-  }
+  if (cart[id].qty<=0) delete cart[id];
 
   renderCart();
-
 }
-
-// ==========================================
-// VACIAR PEDIDO
-// ==========================================
 
 function clear() {
-
   cart = {};
-
   renderCart();
-
 }
 
 // ==========================================
-// ENVIAR PEDIDO POR WHATSAPP
+// ENVIAR PEDIDO A WHATSAPP
 // ==========================================
 
 function sendWhatsApp() {
-
   const entries = Object.values(cart);
-
   if (!entries.length) return;
 
   const total = entries.reduce(
@@ -301,169 +300,78 @@ function sendWhatsApp() {
   );
 
   const type = $("orderType").value;
-
-  const customer =
-    $("customer").value.trim() || "No indicado";
-
-  const customerPhone =
-    $("customerPhone").value.trim() || "No indicado";
-
-  // METODO DE PAGO SELECCIONADO
+  const customer = $("customer").value.trim() || "No indicado";
+  const customerPhone = $("customerPhone").value.trim() || "No indicado";
   const paymentMethod = $("paymentMethod").value;
 
   const lines = [
-
     "🍔 *NUEVO PEDIDO - JP BURGER*",
     "",
     `👤 Cliente: ${customer}`,
     `📞 Teléfono: ${customerPhone}`,
     `🛵 Tipo de pedido: ${type}`,
     `💳 Método de pago: ${paymentMethod}`
-
   ];
 
   if (type === "Domicilio") {
-
     lines.push(
       `📍 Dirección: ${$("address").value.trim() || "Por confirmar"}`
     );
-
   }
 
-  lines.push(
-    "",
-    "*PRODUCTOS*"
-  );
+  lines.push("", "*PRODUCTOS*");
 
   entries.forEach(({product:p,qty}) => {
-
-    lines.push(
-      `• ${qty} x ${p.name} — ${money(p.price*qty)}`
-    );
-
+    lines.push(`• ${qty} x ${p.name} — ${money(p.price*qty)}`);
   });
 
-  lines.push(
-    "",
-    `💰 *TOTAL: ${money(total)}*`
-  );
+  lines.push("", `💰 *TOTAL: ${money(total)}*`);
 
   if ($("notes").value.trim()) {
-
-    lines.push(
-      "",
-      `📝 Observaciones: ${$("notes").value.trim()}`
-    );
-
+    lines.push("", `📝 Observaciones: ${$("notes").value.trim()}`);
   }
 
-  lines.push(
-    "",
-    "Gracias por elegir JP Burger."
-  );
+  lines.push("", "Gracias por elegir JP Burger.");
 
-  const url =
-    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
 
   window.open(url,"_blank","noopener");
-
 }
 
 // ==========================================
-// EVENTOS DE CATEGORIAS
+// EVENTOS
 // ==========================================
 
 $("categories").addEventListener("click",e=>{
-
   const b = e.target.closest("[data-category]");
-
   if (!b) return;
 
   activeCategory = b.dataset.category;
-
   renderCategories();
-
   renderProducts();
-
 });
-
-// ==========================================
-// EVENTOS DE PRODUCTOS
-// ==========================================
 
 $("products").addEventListener("click",e=>{
-
   const b = e.target.closest("[data-add]");
-
-  if (b) {
-    add(b.dataset.add);
-  }
-
+  if (b) add(b.dataset.add);
 });
-
-// ==========================================
-// EVENTOS DEL CARRITO
-// ==========================================
 
 $("cart").addEventListener("click",e=>{
-
   const inc = e.target.closest("[data-inc]");
-
   const dec = e.target.closest("[data-dec]");
 
-  if (inc) {
-    changeQty(inc.dataset.inc,1);
-  }
-
-  if (dec) {
-    changeQty(dec.dataset.dec,-1);
-  }
-
+  if (inc) changeQty(inc.dataset.inc,1);
+  if (dec) changeQty(dec.dataset.dec,-1);
 });
 
-// ==========================================
-// BUSCADOR
-// ==========================================
-
-$("search").addEventListener(
-  "input",
-  renderProducts
-);
-
-// ==========================================
-// BOTON WHATSAPP
-// ==========================================
-
-$("sendWhatsApp").addEventListener(
-  "click",
-  sendWhatsApp
-);
-
-// ==========================================
-// BOTONES PARA LIMPIAR
-// ==========================================
-
-$("clearCart").addEventListener(
-  "click",
-  clear
-);
-
-$("clearCartTop").addEventListener(
-  "click",
-  clear
-);
-
-// ==========================================
-// MOSTRAR U OCULTAR DIRECCION
-// ==========================================
+$("search").addEventListener("input",renderProducts);
+$("sendWhatsApp").addEventListener("click",sendWhatsApp);
+$("clearCart").addEventListener("click",clear);
+$("clearCartTop").addEventListener("click",clear);
 
 $("orderType").addEventListener("change",()=>{
-
   $("addressWrap").style.display =
-    $("orderType").value === "Domicilio"
-      ? "grid"
-      : "none";
-
+    $("orderType").value === "Domicilio" ? "grid" : "none";
 });
 
 // ==========================================
@@ -471,8 +379,5 @@ $("orderType").addEventListener("change",()=>{
 // ==========================================
 
 renderCategories();
-
 renderProducts();
-
 renderCart();
-
