@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#171717">
+  <meta name="theme-color" content="#080808">
   <title>JP Burger | Punto de venta</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -18,6 +18,7 @@
       <small>Punto de venta</small>
     </div>
   </div>
+
   <div class="top-actions">
     <span class="open-pill">● Sistema listo</span>
     <button id="clearCartTop" class="btn btn-outline">
@@ -27,31 +28,27 @@
 </header>
 
 <main class="layout">
-
   <section class="catalog">
     <div class="welcome">
       <div>
         <p class="eyebrow">SISTEMA DE PEDIDOS</p>
         <h2>¿Qué vamos a preparar hoy?</h2>
-        <p>Selecciona productos para agregarlos al pedido.</p>
+        <p>Selecciona tus productos favoritos y arma tu pedido.</p>
       </div>
       <div class="burger-art">🍟</div>
     </div>
 
     <label class="search">
       <span>⌕</span>
-      <input id="search" type="search"
-        placeholder="Buscar producto...">
+      <input id="search" type="search" placeholder="Buscar producto...">
     </label>
 
-    <nav id="categories" class="categories"
-      aria-label="Categorías"></nav>
+    <nav id="categories" class="categories" aria-label="Categorías"></nav>
 
     <div id="products" class="products"></div>
   </section>
 
   <aside class="order-panel">
-
     <div class="panel-heading">
       <div>
         <p class="eyebrow">VENTA ACTUAL</p>
@@ -61,7 +58,6 @@
     </div>
 
     <div class="customer-fields">
-
       <label>
         Nombre del cliente
         <input id="customer" placeholder="Nombre">
@@ -69,27 +65,22 @@
 
       <label>
         Teléfono
-        <input id="customerPhone"
-          inputmode="tel"
-          placeholder="Teléfono (opcional)">
+        <input id="customerPhone" inputmode="tel" placeholder="Teléfono (opcional)">
       </label>
 
       <label>
         Tipo de pedido
         <select id="orderType">
-          <option>Domicilio</option>
-          <option>Recoger en el local</option>
-          <option>Para consumir en el local</option>
+          <option value="Domicilio">Domicilio</option>
+          <option value="Recoger en el local">Recoger en el local</option>
+          <option value="Para consumir en el local">Para consumir en el local</option>
         </select>
       </label>
 
       <label id="addressWrap">
         Dirección de entrega
-        <input id="address"
-          placeholder="Dirección y barrio">
+        <input id="address" placeholder="Dirección y barrio">
       </label>
-
-      <!-- METODOS DE PAGO -->
 
       <label>
         Método de pago
@@ -101,11 +92,8 @@
       </label>
 
       <p class="hint payment-hint">
-        Selecciona cómo vas a pagar.
-        Para transferencias por Nequi o Bre-B,
-        el negocio confirmará los datos por WhatsApp.
+        Para transferencias por Nequi o Bre-B, el negocio confirmará los datos por WhatsApp.
       </p>
-
     </div>
 
     <div id="cart" class="cart empty">
@@ -116,8 +104,7 @@
 
     <label class="notes-label">
       Observaciones
-      <textarea id="notes" rows="2"
-        placeholder="Ej. Sin cebolla, llamar al llegar..."></textarea>
+      <textarea id="notes" rows="2" placeholder="Ej. Sin cebolla, llamar al llegar..."></textarea>
     </label>
 
     <div class="total-line">
@@ -125,9 +112,12 @@
       <strong id="total">$0</strong>
     </div>
 
-    <button id="sendWhatsApp"
-      class="btn btn-whatsapp" disabled>
+    <button id="sendWhatsApp" class="btn btn-whatsapp" disabled>
       ☏ &nbsp; Enviar pedido por WhatsApp
+    </button>
+
+    <button id="printOrder" class="btn btn-print" disabled>
+      🖨️ &nbsp; Imprimir pedido
     </button>
 
     <button id="clearCart" class="btn btn-light">
@@ -135,10 +125,8 @@
     </button>
 
     <p class="hint">
-      WhatsApp abrirá el pedido listo para enviar.
-      Confirma el envío desde WhatsApp.
+      Envía el pedido por WhatsApp o imprime el comprobante para cocina.
     </p>
-
   </aside>
 </main>
 
@@ -147,6 +135,5 @@
 </footer>
 
 <script src="app.js"></script>
-
 </body>
 </html>
