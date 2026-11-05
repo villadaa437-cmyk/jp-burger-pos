@@ -1,17 +1,17 @@
 
 // ==========================================
-// JP BURGER POS — CATÁLOGO PREMIUM
-// SIN FOTOGRAFÍAS — SOLO EMOJIS
+// JP BURGER POS — SISTEMA DE PEDIDOS
+// NEGRO + DORADO | SOLO EMOJIS
+// WHATSAPP + IMPRESIÓN
 // ==========================================
 
 const WHATSAPP_NUMBER = "573103114145";
 
 // ==========================================
-// PRODUCTOS
+// CATÁLOGO DE PRODUCTOS
 // ==========================================
 
 const products = [
-
 ["Hamburguesas","Clásica",12000,"Carne de res, queso, papa ripio, lechuga, tomate y cebolla a la plancha.","🍔"],
 ["Hamburguesas","JP Burger",14000,"Carne de res, queso, papa ripio, lechuga, tomate, cebolla, tocineta y maíz tierno.","🍔"],
 ["Hamburguesas","JP Súper Queso",16000,"Carne de res, doble queso y queso gratinado, papa ripio, lechuga y tomate.","🧀"],
@@ -175,7 +175,9 @@ function renderCart() {
 
     $("itemCount").textContent = qty;
     $("total").textContent = money(total);
+
     $("sendWhatsApp").disabled = !entries.length;
+    $("printOrder").disabled = !entries.length;
 
     $("cart").classList.toggle("empty",!entries.length);
 
@@ -216,7 +218,6 @@ function add(id) {
     }
 
     cart[id].qty++;
-
     renderCart();
 }
 
@@ -238,49 +239,62 @@ function clear() {
 }
 
 // ==========================================
-// ENVIAR PEDIDO A WHATSAPP
+// DATOS DEL PEDIDO
 // ==========================================
 
-function sendWhatsApp() {
+function getOrderData() {
     const entries = Object.values(cart);
-    if (!entries.length) return;
 
     const total = entries.reduce(
         (s,x)=>s+x.qty*x.product.price,0
     );
 
-    const type = $("orderType").value;
-    const customer = $("customer").value.trim() || "No indicado";
-    const customerPhone = $("customerPhone").value.trim() || "No indicado";
-    const paymentMethod = $("paymentMethod").value;
+    return {
+        entries,
+        total,
+        customer: $("customer").value.trim() || "No indicado",
+        phone: $("customerPhone").value.trim() || "No indicado",
+        type: $("orderType").value,
+        payment: $("paymentMethod").value,
+        address: $("address").value.trim() || "Por confirmar",
+        notes: $("notes").value.trim() || "Sin observaciones",
+        date: new Date().toLocaleString("es-CO")
+    };
+}
+
+// ==========================================
+// ENVIAR PEDIDO A WHATSAPP
+// ==========================================
+
+function sendWhatsApp() {
+    const order = getOrderData();
+    if (!order.entries.length) return;
 
     const lines = [
         "🍔 *NUEVO PEDIDO - JP BURGER*",
         "",
-        `👤 Cliente: ${customer}`,
-        `📞 Teléfono: ${customerPhone}`,
-        `🛵 Tipo de pedido: ${type}`,
-        `💳 Método de pago: ${paymentMethod}`
+        `👤 Cliente: ${order.customer}`,
+        `📞 Teléfono: ${order.phone}`,
+        `🛵 Tipo de pedido: ${order.type}`,
+        `💳 Método de pago: ${order.payment}`
     ];
 
-    if (type === "Domicilio") {
-        lines.push(
-            `📍 Dirección: ${$("address").value.trim() || "Por confirmar"}`
-        );
+    if (order.type === "Domicilio") {
+        lines.push(`📍 Dirección: ${order.address}`);
     }
 
     lines.push("", "*PRODUCTOS*");
 
-    entries.forEach(({product:p,qty}) => {
+    order.entries.forEach(({product:p,qty}) => {
         lines.push(
             `• ${p.emoji} ${qty} x ${p.name} — ${money(p.price*qty)}`
         );
     });
 
-    lines.push("", `💰 *TOTAL: ${money(total)}*`);
+    lines.push("", `💰 *TOTAL: ${money(order.total)}*`);
 
-    if ($("notes").value.trim()) {
-        lines.push("", `📝 Observaciones: ${$("notes").value.trim()}`);
+    if (order.notes !== "Sin observaciones") {
+        lines.push("", `📝 Observaciones: ${order.notes}`);
     }
 
     lines.push("", "Gracias por elegir JP Burger.");
@@ -288,6 +302,220 @@ function sendWhatsApp() {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
 
     window.open(url,"_blank","noopener");
+}
+
+// ==========================================
+// IMPRIMIR PEDIDO
+// ==========================================
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+function printOrder() {
+    const order = getOrderData();
+
+    if (!order.entries.length) return;
+
+    const ticket = window.open("", "_blank", "width=420,height=750");
+
+    if (!ticket) {
+        alert("Permite las ventanas emergentes para imprimir el pedido.");
+        return;
+    }
+
+    const productRows = order.entries.map(({product,qty}) => `
+        <div class="product">
+            <div class="product-name">
+                <strong>${qty} x ${escapeHTML(product.name)}</strong>
+                <small>${money(product.price)} unidad</small>
+            </div>
+            <strong>${money(product.price * qty)}</strong>
+        </div>
+    `).join("");
+
+    ticket.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Comanda JP BURGER</title>
+
+            <style>
+                * {
+                    box-sizing: border-box;
+                }
+
+                body {
+                    width: 300px;
+                    margin: 0 auto;
+                    padding: 15px 10px;
+                    color: #111;
+                    background: #fff;
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                }
+
+                .header {
+                    text-align: center;
+                    padding-bottom: 13px;
+                    border-bottom: 2px dashed #222;
+                }
+
+                .logo {
+                    font-size: 30px;
+                }
+
+                h1 {
+                    margin: 5px 0;
+                    font-size: 25px;
+                    letter-spacing: 2px;
+                }
+
+                .subtitle {
+                    margin: 4px 0;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                }
+
+                .date {
+                    margin-top: 8px;
+                    font-size: 10px;
+                }
+
+                .section {
+                    padding: 11px 0;
+                    border-bottom: 1px dashed #777;
+                }
+
+                .section p {
+                    margin: 5px 0;
+                    line-height: 1.4;
+                }
+
+                .section-title {
+                    margin-bottom: 10px;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                }
+
+                .product {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    gap: 8px;
+                    margin: 10px 0;
+                }
+
+                .product-name {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 3px;
+                }
+
+                .product small {
+                    color: #555;
+                    font-size: 10px;
+                }
+
+                .total {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 14px 0;
+                    font-size: 19px;
+                    font-weight: bold;
+                }
+
+                .observations {
+                    overflow-wrap: anywhere;
+                }
+
+                .footer {
+                    padding-top: 13px;
+                    text-align: center;
+                    border-top: 2px dashed #222;
+                    line-height: 1.5;
+                }
+
+                .kitchen {
+                    margin-top: 12px;
+                    text-align: center;
+                    font-size: 10px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                }
+
+                @page {
+                    margin: 5mm;
+                }
+
+                @media print {
+                    body {
+                        width: 100%;
+                        margin: 0;
+                        padding: 0;
+                    }
+                }
+            </style>
+        </head>
+
+        <body>
+            <div class="header">
+                <div class="logo">🍔</div>
+                <h1>JP BURGER</h1>
+                <div class="subtitle">COMANDA DE PEDIDO</div>
+                <div class="date">${escapeHTML(order.date)}</div>
+            </div>
+
+            <div class="section">
+                <p><strong>Cliente:</strong> ${escapeHTML(order.customer)}</p>
+                <p><strong>Teléfono:</strong> ${escapeHTML(order.phone)}</p>
+                <p><strong>Tipo:</strong> ${escapeHTML(order.type)}</p>
+                ${order.type === "Domicilio"
+                    ? `<p><strong>Dirección:</strong> ${escapeHTML(order.address)}</p>`
+                    : ""}
+                <p><strong>Pago:</strong> ${escapeHTML(order.payment)}</p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">DETALLE DEL PEDIDO</div>
+                ${productRows}
+            </div>
+
+            <div class="total">
+                <span>TOTAL</span>
+                <span>${money(order.total)}</span>
+            </div>
+
+            <div class="section observations">
+                <strong>OBSERVACIONES</strong>
+                <p>${escapeHTML(order.notes)}</p>
+            </div>
+
+            <div class="footer">
+                <strong>¡GRACIAS POR ELEGIR JP BURGER!</strong>
+                <p>Calidad y sabor que te hacen volver.</p>
+            </div>
+
+            <div class="kitchen">*** FIN DEL PEDIDO ***</div>
+
+            <script>
+                window.onload = function() {
+                    window.print();
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+
+    ticket.document.close();
 }
 
 // ==========================================
@@ -318,6 +546,7 @@ $("cart").addEventListener("click",e=>{
 
 $("search").addEventListener("input",renderProducts);
 $("sendWhatsApp").addEventListener("click",sendWhatsApp);
+$("printOrder").addEventListener("click",printOrder);
 $("clearCart").addEventListener("click",clear);
 $("clearCartTop").addEventListener("click",clear);
 
@@ -329,6 +558,9 @@ $("orderType").addEventListener("change",()=>{
 // ==========================================
 // INICIAR SISTEMA
 // ==========================================
+
+$("addressWrap").style.display =
+    $("orderType").value === "Domicilio" ? "grid" : "none";
 
 renderCategories();
 renderProducts();
