@@ -1,60 +1,10 @@
 
 // ==========================================
 // JP BURGER POS — CATÁLOGO PREMIUM
+// SIN FOTOGRAFÍAS — SOLO EMOJIS
 // ==========================================
 
 const WHATSAPP_NUMBER = "573103114145";
-
-// Fotografías ilustrativas por categoría
-const productImages = {
-  "Hamburguesas": [
-    "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Ricuras": [
-    "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1534939561126-855b8675edd7?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Perros calientes": [
-    "https://images.unsplash.com/photo-1612392062631-94dd858cba88?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1599599810694-b5b37304c041?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Salchipapas": [
-    "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Dorilocos": [
-    "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Flautas": [
-    "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Lasañas": [
-    "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1619895092538-128341789043?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Burritos": [
-    "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Adicionales": [
-    "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=900&q=85"
-  ],
-  "Bebidas": [
-    "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1513558161293-cdcac4c2c8c5?auto=format&fit=crop&w=900&q=85"
-  ]
-};
-
-function imageFor(category, index) {
-  const images = productImages[category] || productImages["Ricuras"];
-  return images[index % images.length];
-}
 
 // ==========================================
 // PRODUCTOS
@@ -134,13 +84,12 @@ const products = [
 ["Bebidas","Jugo en leche",5000,"Jugo preparado en leche.","🥛"]
 
 ].map((p,i)=>({
-  id:i,
-  category:p[0],
-  name:p[1],
-  price:p[2],
-  description:p[3],
-  emoji:p[4],
-  image:imageFor(p[0],i)
+    id:i,
+    category:p[0],
+    name:p[1],
+    price:p[2],
+    description:p[3],
+    emoji:p[4]
 }));
 
 // ==========================================
@@ -148,17 +97,17 @@ const products = [
 // ==========================================
 
 const money = n => new Intl.NumberFormat("es-CO", {
-  style:"currency",
-  currency:"COP",
-  maximumFractionDigits:0
+    style:"currency",
+    currency:"COP",
+    maximumFractionDigits:0
 }).format(n);
 
 let activeCategory = "Todos";
 let cart = {};
 
 const categories = [
-  "Todos",
-  ...new Set(products.map(p=>p.category))
+    "Todos",
+    ...new Set(products.map(p=>p.category))
 ];
 
 const $ = id => document.getElementById(id);
@@ -168,58 +117,50 @@ const $ = id => document.getElementById(id);
 // ==========================================
 
 function renderCategories() {
-  $("categories").innerHTML = categories.map(c => `
-    <button class="category ${c===activeCategory?"active":""}"
-      data-category="${c}">
-      ${c}
-    </button>
-  `).join("");
+    $("categories").innerHTML = categories.map(c => `
+        <button class="category ${c===activeCategory?"active":""}"
+            data-category="${c}">
+            ${c}
+        </button>
+    `).join("");
 }
 
 // ==========================================
-// PRODUCTOS
+// PRODUCTOS — SOLO EMOJIS
 // ==========================================
 
 function renderProducts() {
-  const q = $("search").value.trim().toLocaleLowerCase("es");
+    const q = $("search").value.trim().toLocaleLowerCase("es");
 
-  const list = products.filter(p =>
-    (activeCategory==="Todos" || p.category===activeCategory) &&
-    (`${p.name} ${p.description} ${p.category}`)
-      .toLocaleLowerCase("es")
-      .includes(q)
-  );
+    const list = products.filter(p =>
+        (activeCategory==="Todos" || p.category===activeCategory) &&
+        (`${p.name} ${p.description} ${p.category}`)
+            .toLocaleLowerCase("es")
+            .includes(q)
+    );
 
-  $("products").innerHTML = list.length
-    ? list.map(p => `
-      <article class="product">
-        <div class="product-photo">
-          <img
-            src="${p.image}"
-            alt="${p.name}"
-            loading="lazy"
-            onerror="this.style.display='none'; this.parentElement.classList.add('image-fallback')"
-          >
-          <span class="photo-emoji">${p.emoji}</span>
-          <span class="product-category">${p.category}</span>
-        </div>
+    $("products").innerHTML = list.length
+        ? list.map(p => `
+            <article class="product">
+                <div class="product-top">
+                    <span class="product-emoji">${p.emoji}</span>
+                    <span class="eyebrow">${p.category}</span>
+                </div>
 
-        <div class="product-content">
-          <h3>${p.name}</h3>
-          <p>${p.description}</p>
+                <h3>${p.name}</h3>
+                <p>${p.description}</p>
 
-          <div class="product-bottom">
-            <span class="price">${money(p.price)}</span>
-            <button class="add" data-add="${p.id}">
-              + Agregar
-            </button>
-          </div>
-        </div>
-      </article>
-    `).join("")
-    : `<div class="no-results">
-        No encontramos productos con esa búsqueda.
-      </div>`;
+                <div class="product-bottom">
+                    <span class="price">${money(p.price)}</span>
+                    <button class="add" data-add="${p.id}">
+                        + Agregar
+                    </button>
+                </div>
+            </article>
+        `).join("")
+        : `<div class="no-results">
+            No encontramos productos con esa búsqueda.
+        </div>`;
 }
 
 // ==========================================
@@ -227,64 +168,73 @@ function renderProducts() {
 // ==========================================
 
 function renderCart() {
-  const entries = Object.values(cart);
+    const entries = Object.values(cart);
 
-  const qty = entries.reduce((s,x)=>s+x.qty,0);
-  const total = entries.reduce((s,x)=>s+x.qty*x.product.price,0);
+    const qty = entries.reduce((s,x)=>s+x.qty,0);
+    const total = entries.reduce((s,x)=>s+x.qty*x.product.price,0);
 
-  $("itemCount").textContent = qty;
-  $("total").textContent = money(total);
-  $("sendWhatsApp").disabled = !entries.length;
+    $("itemCount").textContent = qty;
+    $("total").textContent = money(total);
+    $("sendWhatsApp").disabled = !entries.length;
 
-  $("cart").classList.toggle("empty",!entries.length);
+    $("cart").classList.toggle("empty",!entries.length);
 
-  $("cart").innerHTML = entries.length
-    ? entries.map(({product:p,qty}) => `
-      <div class="cart-row">
-        <div>
-          <div class="cart-name">${p.name}</div>
-          <div class="cart-price">
-            ${money(p.price)} · ${money(p.price*qty)}
-          </div>
-        </div>
+    $("cart").innerHTML = entries.length
+        ? entries.map(({product:p,qty}) => `
+            <div class="cart-row">
+                <div>
+                    <div class="cart-name">${p.emoji} ${p.name}</div>
+                    <div class="cart-price">
+                        ${money(p.price)} · ${money(p.price*qty)}
+                    </div>
+                </div>
 
-        <div class="qty">
-          <button data-dec="${p.id}" aria-label="Quitar uno">−</button>
-          <span>${qty}</span>
-          <button data-inc="${p.id}" aria-label="Agregar uno">+</button>
-        </div>
-      </div>
-    `).join("")
-    : `
-      <div class="empty-icon">🛍️</div>
-      <strong>Tu pedido está vacío</strong>
-      <p>Agrega productos desde el menú.</p>
-    `;
+                <div class="qty">
+                    <button data-dec="${p.id}" aria-label="Quitar uno">−</button>
+                    <span>${qty}</span>
+                    <button data-inc="${p.id}" aria-label="Agregar uno">+</button>
+                </div>
+            </div>
+        `).join("")
+        : `
+            <div class="empty-icon">🛍️</div>
+            <strong>Tu pedido está vacío</strong>
+            <p>Agrega productos desde el menú.</p>
+        `;
 }
 
+// ==========================================
+// AGREGAR Y MODIFICAR PRODUCTOS
+// ==========================================
+
 function add(id) {
-  const p = products.find(x => x.id === Number(id));
-  if (!p) return;
+    const p = products.find(x => x.id === Number(id));
+    if (!p) return;
 
-  if (!cart[id]) cart[id] = {product:p,qty:0};
-  cart[id].qty++;
+    if (!cart[id]) {
+        cart[id] = {product:p,qty:0};
+    }
 
-  renderCart();
+    cart[id].qty++;
+
+    renderCart();
 }
 
 function changeQty(id,d) {
-  if (!cart[id]) return;
+    if (!cart[id]) return;
 
-  cart[id].qty += d;
+    cart[id].qty += d;
 
-  if (cart[id].qty<=0) delete cart[id];
+    if (cart[id].qty<=0) {
+        delete cart[id];
+    }
 
-  renderCart();
+    renderCart();
 }
 
 function clear() {
-  cart = {};
-  renderCart();
+    cart = {};
+    renderCart();
 }
 
 // ==========================================
@@ -292,50 +242,52 @@ function clear() {
 // ==========================================
 
 function sendWhatsApp() {
-  const entries = Object.values(cart);
-  if (!entries.length) return;
+    const entries = Object.values(cart);
+    if (!entries.length) return;
 
-  const total = entries.reduce(
-    (s,x)=>s+x.qty*x.product.price,0
-  );
-
-  const type = $("orderType").value;
-  const customer = $("customer").value.trim() || "No indicado";
-  const customerPhone = $("customerPhone").value.trim() || "No indicado";
-  const paymentMethod = $("paymentMethod").value;
-
-  const lines = [
-    "🍔 *NUEVO PEDIDO - JP BURGER*",
-    "",
-    `👤 Cliente: ${customer}`,
-    `📞 Teléfono: ${customerPhone}`,
-    `🛵 Tipo de pedido: ${type}`,
-    `💳 Método de pago: ${paymentMethod}`
-  ];
-
-  if (type === "Domicilio") {
-    lines.push(
-      `📍 Dirección: ${$("address").value.trim() || "Por confirmar"}`
+    const total = entries.reduce(
+        (s,x)=>s+x.qty*x.product.price,0
     );
-  }
 
-  lines.push("", "*PRODUCTOS*");
+    const type = $("orderType").value;
+    const customer = $("customer").value.trim() || "No indicado";
+    const customerPhone = $("customerPhone").value.trim() || "No indicado";
+    const paymentMethod = $("paymentMethod").value;
 
-  entries.forEach(({product:p,qty}) => {
-    lines.push(`• ${qty} x ${p.name} — ${money(p.price*qty)}`);
-  });
+    const lines = [
+        "🍔 *NUEVO PEDIDO - JP BURGER*",
+        "",
+        `👤 Cliente: ${customer}`,
+        `📞 Teléfono: ${customerPhone}`,
+        `🛵 Tipo de pedido: ${type}`,
+        `💳 Método de pago: ${paymentMethod}`
+    ];
 
-  lines.push("", `💰 *TOTAL: ${money(total)}*`);
+    if (type === "Domicilio") {
+        lines.push(
+            `📍 Dirección: ${$("address").value.trim() || "Por confirmar"}`
+        );
+    }
 
-  if ($("notes").value.trim()) {
-    lines.push("", `📝 Observaciones: ${$("notes").value.trim()}`);
-  }
+    lines.push("", "*PRODUCTOS*");
 
-  lines.push("", "Gracias por elegir JP Burger.");
+    entries.forEach(({product:p,qty}) => {
+        lines.push(
+            `• ${p.emoji} ${qty} x ${p.name} — ${money(p.price*qty)}`
+        );
+    });
 
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+    lines.push("", `💰 *TOTAL: ${money(total)}*`);
 
-  window.open(url,"_blank","noopener");
+    if ($("notes").value.trim()) {
+        lines.push("", `📝 Observaciones: ${$("notes").value.trim()}`);
+    }
+
+    lines.push("", "Gracias por elegir JP Burger.");
+
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+
+    window.open(url,"_blank","noopener");
 }
 
 // ==========================================
@@ -343,25 +295,25 @@ function sendWhatsApp() {
 // ==========================================
 
 $("categories").addEventListener("click",e=>{
-  const b = e.target.closest("[data-category]");
-  if (!b) return;
+    const b = e.target.closest("[data-category]");
+    if (!b) return;
 
-  activeCategory = b.dataset.category;
-  renderCategories();
-  renderProducts();
+    activeCategory = b.dataset.category;
+    renderCategories();
+    renderProducts();
 });
 
 $("products").addEventListener("click",e=>{
-  const b = e.target.closest("[data-add]");
-  if (b) add(b.dataset.add);
+    const b = e.target.closest("[data-add]");
+    if (b) add(b.dataset.add);
 });
 
 $("cart").addEventListener("click",e=>{
-  const inc = e.target.closest("[data-inc]");
-  const dec = e.target.closest("[data-dec]");
+    const inc = e.target.closest("[data-inc]");
+    const dec = e.target.closest("[data-dec]");
 
-  if (inc) changeQty(inc.dataset.inc,1);
-  if (dec) changeQty(dec.dataset.dec,-1);
+    if (inc) changeQty(inc.dataset.inc,1);
+    if (dec) changeQty(dec.dataset.dec,-1);
 });
 
 $("search").addEventListener("input",renderProducts);
@@ -370,8 +322,8 @@ $("clearCart").addEventListener("click",clear);
 $("clearCartTop").addEventListener("click",clear);
 
 $("orderType").addEventListener("change",()=>{
-  $("addressWrap").style.display =
-    $("orderType").value === "Domicilio" ? "grid" : "none";
+    $("addressWrap").style.display =
+        $("orderType").value === "Domicilio" ? "grid" : "none";
 });
 
 // ==========================================
