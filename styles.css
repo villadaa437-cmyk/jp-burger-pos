@@ -1,8 +1,7 @@
 
 /* ==========================================================
-   JP BURGER POS — ORIGINAL PREMIUM
-   NEGRO + DORADO + LETRAS BLANCAS
-   PRODUCTOS CON EMOJIS, SIN FOTOGRAFÍAS
+   JP BURGER POS — NEGRO + DORADO
+   LETRAS BLANCAS — PRODUCTOS CON EMOJIS
 ========================================================== */
 
 :root {
@@ -291,7 +290,7 @@ body {
     box-shadow: 0 5px 18px rgba(214,168,75,.2);
 }
 
-/* PRODUCTOS */
+/* PRODUCTOS — SOLO EMOJIS */
 
 .products {
     display: grid;
