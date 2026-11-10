@@ -2,13 +2,14 @@
 // ==========================================
 // JP BURGER POS — SISTEMA DE PEDIDOS
 // NEGRO + DORADO | SOLO EMOJIS
-// WHATSAPP + IMPRESIÓN
+// WHATSAPP + IMPRESIÓN + RULETA DE PREMIOS
 // ==========================================
 
 const WHATSAPP_NUMBER = "573103114145";
 
 const DELIVERY_FEE = 5000;
 const PACKAGING_FEE = 1000;
+const FRIES_VALUE = 6000;
 
 // ==========================================
 // CATÁLOGO DE PRODUCTOS
@@ -26,7 +27,7 @@ const products = [
 ["Hamburguesas","Doble Carne",18000,"Doble carne de res, queso, lechuga, tomate, papa ripio y salsas.","🍔"],
 
 ["Ricuras","Tosticarne",16000,"Patacón con carne desmechada y queso derretido.","🍌"],
-["Ricuras","Churrasquito",18000,"Carne de res a la plancha, maduro, ensalada dulce y papas.","🥩"],
+["Ricuras","Churrasquito",18000,"Carne de res a la plancha, maduro y ensalada dulce con papas.","🥩"],
 ["Ricuras","Pechuga",17000,"Pechuga de pollo a la plancha, ensalada dulce y papas o chips.","🍗"],
 ["Ricuras","Costillas BBQ",20000,"Costillas de cerdo en salsa BBQ, ensalada dulce y papas o chips.","🍖"],
 ["Ricuras","Tosti Camarón",21000,"Camarones al ajillo con queso.","🍤"],
@@ -96,6 +97,47 @@ const products = [
 }));
 
 // ==========================================
+// PREMIOS DE LA RULETA
+// ==========================================
+
+const prizes = [
+    {
+        id:"discount10",
+        name:"10% de descuento",
+        emoji:"🎉",
+        message:"¡FELICIDADES! Ganaste un 10% de descuento."
+    },
+    {
+        id:"freeDelivery",
+        name:"Domicilio gratis",
+        emoji:"🛵",
+        message:"¡FELICIDADES! Ganaste domicilio gratis."
+    },
+    {
+        id:"discount2000",
+        name:"$2.000 de descuento",
+        emoji:"💰",
+        message:"¡FELICIDADES! Ganaste $2.000 de descuento."
+    },
+    {
+        id:"freeFries",
+        name:"Papas gratis",
+        emoji:"🍟",
+        message:"¡FELICIDADES! Ganaste una porción de papas gratis."
+    },
+    {
+        id:"nextTime",
+        name:"Para la próxima",
+        emoji:"🍀",
+        message:"¡Gracias por participar! Será para la próxima."
+    }
+];
+
+let activePrize = null;
+let rouletteUsed = false;
+let wheelRotation = 0;
+
+// ==========================================
 // CONFIGURACIÓN
 // ==========================================
 
@@ -131,21 +173,55 @@ function calculateOrder() {
         (s,x)=>s+x.qty*x.product.price,0
     );
 
-    // $1.000 por cada producto del pedido
     const packagingTotal = quantity * PACKAGING_FEE;
 
-    // $5.000 solamente cuando es domicilio
-    const deliveryFee =
+    const originalDeliveryFee =
         $("orderType").value === "Domicilio" ? DELIVERY_FEE : 0;
 
-    const total = subtotal + packagingTotal + deliveryFee;
+    let discount = 0;
+    let deliveryFee = originalDeliveryFee;
+    let freeFries = false;
+    let prizeDescription = "Sin premio";
+
+    if (activePrize) {
+        prizeDescription = activePrize.name;
+
+        switch (activePrize.id) {
+            case "discount10":
+                discount = Math.round(subtotal * 0.10);
+                break;
+
+            case "discount2000":
+                discount = Math.min(2000,subtotal);
+                break;
+
+            case "freeDelivery":
+                if (originalDeliveryFee > 0) {
+                    deliveryFee = 0;
+                }
+                break;
+
+            case "freeFries":
+                freeFries = true;
+                break;
+        }
+    }
+
+    const total = Math.max(
+        0,
+        subtotal - discount + packagingTotal + deliveryFee
+    );
 
     return {
         entries,
         quantity,
         subtotal,
         packagingTotal,
+        originalDeliveryFee,
         deliveryFee,
+        discount,
+        freeFries,
+        prizeDescription,
         total
     };
 }
@@ -164,7 +240,7 @@ function renderCategories() {
 }
 
 // ==========================================
-// PRODUCTOS — SOLO EMOJIS
+// PRODUCTOS
 // ==========================================
 
 function renderProducts() {
@@ -201,6 +277,248 @@ function renderProducts() {
         : `<div class="no-results">
             No encontramos productos con esa búsqueda.
         </div>`;
+}
+
+// ==========================================
+// RULETA — INTERFAZ
+// ==========================================
+
+function createRoulette() {
+    if ($("roulettePanel")) return;
+
+    const panel = document.createElement("section");
+    panel.id = "roulettePanel";
+
+    panel.style.cssText = `
+        margin-top:20px;
+        padding:20px;
+        border:1px solid rgba(214,168,75,.45);
+        border-radius:18px;
+        background:#151515;
+        color:#fff;
+        text-align:center;
+    `;
+
+    panel.innerHTML = `
+        <style>
+            #roulettePanel .roulette-title {
+                color:#e8bd65;
+                font-size:23px;
+                font-weight:900;
+                margin-bottom:5px;
+            }
+
+            #roulettePanel .roulette-subtitle {
+                color:#bbb;
+                font-size:13px;
+                margin-bottom:18px;
+            }
+
+            #roulettePanel .wheel-wrap {
+                position:relative;
+                width:250px;
+                max-width:100%;
+                aspect-ratio:1;
+                margin:0 auto 18px;
+            }
+
+            #roulettePanel .wheel-pointer {
+                position:absolute;
+                z-index:3;
+                top:-5px;
+                left:50%;
+                transform:translateX(-50%);
+                width:0;
+                height:0;
+                border-left:15px solid transparent;
+                border-right:15px solid transparent;
+                border-top:30px solid #fff;
+                filter:drop-shadow(0 2px 3px #000);
+            }
+
+            #roulettePanel .wheel {
+                width:100%;
+                height:100%;
+                border-radius:50%;
+                border:7px solid #d6a84b;
+                background:conic-gradient(
+                    #e3ad42 0deg 72deg,
+                    #252525 72deg 144deg,
+                    #b77c24 144deg 216deg,
+                    #303030 216deg 288deg,
+                    #f0c66c 288deg 360deg
+                );
+                box-shadow:0 0 22px rgba(214,168,75,.3);
+                transition:transform 5s cubic-bezier(.12,.75,.15,1);
+                position:relative;
+            }
+
+            #roulettePanel .wheel-center {
+                position:absolute;
+                inset:35%;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                background:#111;
+                color:#e8bd65;
+                border:4px solid #d6a84b;
+                border-radius:50%;
+                font-size:22px;
+                font-weight:900;
+            }
+
+            #roulettePanel .wheel-labels {
+                position:absolute;
+                inset:0;
+                pointer-events:none;
+            }
+
+            #roulettePanel .wheel-label {
+                position:absolute;
+                left:50%;
+                top:50%;
+                width:75px;
+                margin-left:-37px;
+                margin-top:-10px;
+                color:#fff;
+                font-size:10px;
+                line-height:1.1;
+                font-weight:900;
+                text-shadow:0 1px 3px #000;
+                text-align:center;
+            }
+
+            #roulettePanel .wheel-label:nth-child(1) {
+                transform:rotate(0deg) translateY(-91px) rotate(0deg);
+            }
+            #roulettePanel .wheel-label:nth-child(2) {
+                transform:rotate(72deg) translateY(-91px) rotate(-72deg);
+            }
+            #roulettePanel .wheel-label:nth-child(3) {
+                transform:rotate(144deg) translateY(-91px) rotate(-144deg);
+            }
+            #roulettePanel .wheel-label:nth-child(4) {
+                transform:rotate(216deg) translateY(-91px) rotate(-216deg);
+            }
+            #roulettePanel .wheel-label:nth-child(5) {
+                transform:rotate(288deg) translateY(-91px) rotate(-288deg);
+            }
+
+            #roulettePanel .spin-button {
+                border:0;
+                border-radius:30px;
+                padding:13px 28px;
+                color:#151515;
+                background:linear-gradient(135deg,#f4d58a,#bd842a);
+                font-size:15px;
+                font-weight:900;
+                cursor:pointer;
+            }
+
+            #roulettePanel .spin-button:disabled {
+                opacity:.5;
+                cursor:not-allowed;
+            }
+
+            #roulettePanel .prize-result {
+                margin-top:16px;
+                padding:14px;
+                border:1px solid #d6a84b;
+                border-radius:12px;
+                background:#211b10;
+                color:#f4d58a;
+                font-weight:800;
+                line-height:1.5;
+            }
+
+            #roulettePanel .roulette-note {
+                color:#aaa;
+                font-size:11px;
+                margin-top:12px;
+            }
+        </style>
+
+        <div class="roulette-title">🎡 RULETA DE LA SUERTE</div>
+        <div class="roulette-subtitle">
+            ¡Gira y descubre qué premio tienes hoy!
+        </div>
+
+        <div class="wheel-wrap">
+            <div class="wheel-pointer"></div>
+            <div class="wheel" id="prizeWheel">
+                <div class="wheel-labels">
+                    <span class="wheel-label">10% OFF</span>
+                    <span class="wheel-label">DOMICILIO<br>GRATIS</span>
+                    <span class="wheel-label">$2.000<br>OFF</span>
+                    <span class="wheel-label">PAPAS<br>GRATIS</span>
+                    <span class="wheel-label">PARA LA<br>PRÓXIMA</span>
+                </div>
+                <div class="wheel-center">JP</div>
+            </div>
+        </div>
+
+        <button type="button" class="spin-button" id="spinRoulette">
+            🎁 GIRAR RULETA
+        </button>
+
+        <div class="prize-result" id="prizeResult" hidden></div>
+
+        <div class="roulette-note">
+            Una oportunidad por pedido. ¡Mucha suerte!
+        </div>
+    `;
+
+    $("cart").insertAdjacentElement("afterend",panel);
+
+    $("spinRoulette").addEventListener("click",spinRoulette);
+}
+
+function spinRoulette() {
+    const button = $("spinRoulette");
+
+    if (rouletteUsed) return;
+
+    if (Object.keys(cart).length === 0) {
+        alert("Primero agrega productos al pedido para participar.");
+        return;
+    }
+
+    rouletteUsed = true;
+    button.disabled = true;
+    button.textContent = "🎡 GIRANDO...";
+
+    const resultIndex = Math.floor(Math.random()*prizes.length);
+    const selectedPrize = prizes[resultIndex];
+
+    const degreesPerPrize = 360 / prizes.length;
+    const targetAngle = 360 - (
+        resultIndex * degreesPerPrize + degreesPerPrize / 2
+    );
+
+    wheelRotation += 360 * 6 + targetAngle;
+    $("prizeWheel").style.transform =
+        `rotate(${wheelRotation}deg)`;
+
+    setTimeout(()=>{
+        activePrize = selectedPrize;
+
+        const result = $("prizeResult");
+        result.hidden = false;
+        result.innerHTML = `
+            <div style="font-size:30px">${selectedPrize.emoji}</div>
+            <div style="font-size:19px;margin:5px 0">
+                ${selectedPrize.name}
+            </div>
+            <div>${selectedPrize.message}</div>
+            <div style="font-size:12px;margin-top:7px;color:#ddd">
+                El premio se ha registrado en este pedido.
+            </div>
+        `;
+
+        button.textContent = "✅ PREMIO OBTENIDO";
+
+        renderCart();
+    },5100);
 }
 
 // ==========================================
@@ -245,10 +563,38 @@ function renderCart() {
                 <strong>${money(order.packagingTotal)}</strong>
             </div>
 
-            ${order.deliveryFee > 0 ? `
+            ${order.originalDeliveryFee > 0 ? `
                 <div class="cart-row">
                     <span>🛵 Domicilio</span>
-                    <strong>${money(order.deliveryFee)}</strong>
+                    <strong>${money(order.originalDeliveryFee)}</strong>
+                </div>
+            ` : ""}
+
+            ${order.discount > 0 ? `
+                <div class="cart-row">
+                    <span>🎉 Descuento de ruleta</span>
+                    <strong>-${money(order.discount)}</strong>
+                </div>
+            ` : ""}
+
+            ${order.deliveryFee === 0 && order.originalDeliveryFee > 0 ? `
+                <div class="cart-row">
+                    <span>🎁 Domicilio gratis</span>
+                    <strong>-${money(DELIVERY_FEE)}</strong>
+                </div>
+            ` : ""}
+
+            ${order.freeFries ? `
+                <div class="cart-row">
+                    <span>🍟 Papas gratis (obsequio)</span>
+                    <strong>$0</strong>
+                </div>
+            ` : ""}
+
+            ${activePrize ? `
+                <div class="cart-row">
+                    <span>🎡 Premio</span>
+                    <strong>${activePrize.name}</strong>
                 </div>
             ` : ""}
 
@@ -262,6 +608,8 @@ function renderCart() {
             <strong>Tu pedido está vacío</strong>
             <p>Agrega productos desde el menú.</p>
         `;
+
+    createRoulette();
 }
 
 // ==========================================
@@ -298,7 +646,17 @@ function changeQty(id,d) {
 
 function clear() {
     cart = {};
+    activePrize = null;
+    rouletteUsed = false;
+    wheelRotation = 0;
+
     renderCart();
+
+    $("prizeWheel").style.transform = "rotate(0deg)";
+    $("spinRoulette").disabled = false;
+    $("spinRoulette").textContent = "🎁 GIRAR RULETA";
+    $("prizeResult").hidden = true;
+    $("prizeResult").innerHTML = "";
 }
 
 // ==========================================
@@ -321,7 +679,7 @@ function getOrderData() {
 }
 
 // ==========================================
-// ENVIAR PEDIDO A WHATSAPP
+// WHATSAPP
 // ==========================================
 
 function sendWhatsApp() {
@@ -352,10 +710,34 @@ function sendWhatsApp() {
 
     lines.push("");
     lines.push(`🧾 Subtotal productos: ${money(order.subtotal)}`);
-    lines.push(`📦 Empaques de icopor (${order.quantity} × ${money(PACKAGING_FEE)}): ${money(order.packagingTotal)}`);
+    lines.push(`📦 Empaques (${order.quantity} × ${money(PACKAGING_FEE)}): ${money(order.packagingTotal)}`);
 
-    if (order.deliveryFee > 0) {
-        lines.push(`🛵 Domicilio: ${money(order.deliveryFee)}`);
+    if (order.originalDeliveryFee > 0) {
+        lines.push(`🛵 Domicilio: ${money(order.originalDeliveryFee)}`);
+    }
+
+    if (order.discount > 0) {
+        lines.push(`🎉 Descuento aplicado: -${money(order.discount)}`);
+    }
+
+    if (activePrize?.id === "freeDelivery") {
+        if (order.originalDeliveryFee > 0) {
+            lines.push("🎁 Premio: DOMICILIO GRATIS");
+        } else {
+            lines.push("🎁 Premio obtenido: DOMICILIO GRATIS (no aplica a pedido para recoger)");
+        }
+    }
+
+    if (order.freeFries) {
+        lines.push("🍟 Premio: UNA PORCIÓN DE PAPAS GRATIS");
+    }
+
+    if (activePrize?.id === "nextTime") {
+        lines.push("🍀 Premio: ¡Para la próxima!");
+    }
+
+    if (activePrize) {
+        lines.push(`🎡 Resultado de la ruleta: ${activePrize.name}`);
     }
 
     lines.push("");
@@ -408,6 +790,34 @@ function printOrder() {
         </div>
     `).join("");
 
+    let prizeRows = "";
+
+    if (activePrize) {
+        prizeRows += `
+            <p><strong>🎡 Premio:</strong> ${escapeHTML(activePrize.name)}</p>
+        `;
+    }
+
+    if (order.discount > 0) {
+        prizeRows += `
+            <p><strong>🎉 Descuento:</strong> -${money(order.discount)}</p>
+        `;
+    }
+
+    if (activePrize?.id === "freeDelivery") {
+        prizeRows += order.originalDeliveryFee > 0
+            ? `<p><strong>🎁 Domicilio gratis:</strong> -${money(DELIVERY_FEE)}</p>`
+            : `<p><strong>🎁 Domicilio gratis:</strong> No aplicado (pedido para recoger)</p>`;
+    }
+
+    if (order.freeFries) {
+        prizeRows += `<p><strong>🍟 Obsequio:</strong> Una porción de papas gratis</p>`;
+    }
+
+    if (activePrize?.id === "nextTime") {
+        prizeRows += `<p><strong>🍀 Mensaje:</strong> ¡Para la próxima!</p>`;
+    }
+
     ticket.document.write(`
         <!DOCTYPE html>
         <html lang="es">
@@ -417,118 +827,100 @@ function printOrder() {
             <title>Comanda JP BURGER</title>
 
             <style>
-                * {
-                    box-sizing: border-box;
-                }
+                * { box-sizing:border-box; }
 
                 body {
-                    width: 300px;
-                    margin: 0 auto;
-                    padding: 15px 10px;
-                    color: #111;
-                    background: #fff;
-                    font-family: Arial, sans-serif;
-                    font-size: 12px;
+                    width:300px;
+                    margin:0 auto;
+                    padding:15px 10px;
+                    color:#111;
+                    background:#fff;
+                    font-family:Arial,sans-serif;
+                    font-size:12px;
                 }
 
                 .header {
-                    text-align: center;
-                    padding-bottom: 13px;
-                    border-bottom: 2px dashed #222;
+                    text-align:center;
+                    padding-bottom:13px;
+                    border-bottom:2px dashed #222;
                 }
 
-                .logo {
-                    font-size: 30px;
-                }
+                .logo { font-size:30px; }
 
                 h1 {
-                    margin: 5px 0;
-                    font-size: 25px;
-                    letter-spacing: 2px;
+                    margin:5px 0;
+                    font-size:25px;
+                    letter-spacing:2px;
                 }
 
                 .subtitle {
-                    margin: 4px 0;
-                    font-weight: bold;
-                    letter-spacing: 1px;
+                    margin:4px 0;
+                    font-weight:bold;
+                    letter-spacing:1px;
                 }
 
                 .date {
-                    margin-top: 8px;
-                    font-size: 10px;
+                    margin-top:8px;
+                    font-size:10px;
                 }
 
                 .section {
-                    padding: 11px 0;
-                    border-bottom: 1px dashed #777;
+                    padding:11px 0;
+                    border-bottom:1px dashed #777;
                 }
 
                 .section p {
-                    margin: 5px 0;
-                    line-height: 1.4;
+                    margin:5px 0;
+                    line-height:1.4;
                 }
 
                 .section-title {
-                    margin-bottom: 10px;
-                    font-weight: bold;
-                    letter-spacing: 1px;
+                    margin-bottom:10px;
+                    font-weight:bold;
+                    letter-spacing:1px;
                 }
 
                 .product {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    gap: 8px;
-                    margin: 10px 0;
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:8px;
+                    margin:10px 0;
                 }
 
                 .product-name {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 3px;
+                    display:flex;
+                    flex-direction:column;
+                    gap:3px;
                 }
 
                 .product small {
-                    color: #555;
-                    font-size: 10px;
+                    color:#555;
+                    font-size:10px;
                 }
 
                 .total {
-                    display: flex;
-                    justify-content: space-between;
-                    padding: 14px 0;
-                    font-size: 19px;
-                    font-weight: bold;
-                }
-
-                .observations {
-                    overflow-wrap: anywhere;
+                    display:flex;
+                    justify-content:space-between;
+                    padding:14px 0;
+                    font-size:19px;
+                    font-weight:bold;
                 }
 
                 .footer {
-                    padding-top: 13px;
-                    text-align: center;
-                    border-top: 2px dashed #222;
-                    line-height: 1.5;
+                    padding-top:13px;
+                    text-align:center;
+                    border-top:2px dashed #222;
+                    line-height:1.5;
                 }
 
-                .kitchen {
-                    margin-top: 12px;
-                    text-align: center;
-                    font-size: 10px;
-                    font-weight: bold;
-                    letter-spacing: 2px;
-                }
-
-                @page {
-                    margin: 5mm;
-                }
+                @page { margin:5mm; }
 
                 @media print {
                     body {
-                        width: 100%;
-                        margin: 0;
-                        padding: 0;
+                        width:100%;
+                        margin:0;
+                        padding:0;
                     }
                 }
             </style>
@@ -560,9 +952,10 @@ function printOrder() {
             <div class="section">
                 <p><strong>Subtotal productos:</strong> ${money(order.subtotal)}</p>
                 <p><strong>Empaques (${order.quantity} × ${money(PACKAGING_FEE)}):</strong> ${money(order.packagingTotal)}</p>
-                ${order.deliveryFee > 0
-                    ? `<p><strong>Domicilio:</strong> ${money(order.deliveryFee)}</p>`
+                ${order.originalDeliveryFee > 0
+                    ? `<p><strong>Domicilio:</strong> ${money(order.originalDeliveryFee)}</p>`
                     : ""}
+                ${prizeRows}
             </div>
 
             <div class="total">
@@ -570,7 +963,7 @@ function printOrder() {
                 <span>${money(order.total)}</span>
             </div>
 
-            <div class="section observations">
+            <div class="section">
                 <strong>OBSERVACIONES</strong>
                 <p>${escapeHTML(order.notes)}</p>
             </div>
@@ -579,19 +972,12 @@ function printOrder() {
                 <strong>¡GRACIAS POR ELEGIR JP BURGER!</strong>
                 <p>Calidad y sabor que te hacen volver.</p>
             </div>
-
-            <div class="kitchen">*** FIN DEL PEDIDO ***</div>
-
-            <script>
-                window.onload = function() {
-                    window.print();
-                };
-            <\\/script>
         </body>
         </html>
     `);
 
     ticket.document.close();
+    ticket.onload = () => ticket.print();
 }
 
 // ==========================================
@@ -630,7 +1016,6 @@ $("orderType").addEventListener("change",()=>{
     $("addressWrap").style.display =
         $("orderType").value === "Domicilio" ? "grid" : "none";
 
-    // Actualizar el domicilio y el total automáticamente
     renderCart();
 });
 
@@ -644,4 +1029,3 @@ $("addressWrap").style.display =
 renderCategories();
 renderProducts();
 renderCart();
-
